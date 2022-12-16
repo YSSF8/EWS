@@ -9,6 +9,8 @@ ews-progress-bar,
 ews-textarea,
 ews-context,
 ews-anchor,
+ews-day,
+ews-timer,
 ews-about {
     font-family: 'Ubuntu', sans-serif;
 }
@@ -46,7 +48,8 @@ ews-text::-webkit-scrollbar {
     height: 0;
 }
 
-ews-counter, ews-ip-address {
+ews-counter,
+ews-ip-address {
     display: block;
 }
 
@@ -100,7 +103,8 @@ ews-textarea {
     outline: none;
 }
 
-ews-text:empty::before, ews-textarea:empty::before {
+ews-text:empty::before,
+ews-textarea:empty::before {
     content: attr(placeholder);
     color: #808080;
     cursor: text;
@@ -169,6 +173,11 @@ ews-anchor .url {
     z-index: 9999;
 }
 
+ews-day,
+ews-timer {
+    display: block;
+}
+
 ews-about {
     background: #121212;
     border-radius: 5px;
@@ -224,6 +233,7 @@ ews-about .close {
     align-items: center;
     float: right;
     font-size: 14px;
+    user-select: none;
     transition: background 200ms;
 }
 
@@ -242,11 +252,13 @@ ews-about::-webkit-scrollbar {
     width: 7px;
 }
 
-ews-about::-webkit-scrollbar-thumb, ews-textarea::-webkit-scrollbar-thumb {
+ews-about::-webkit-scrollbar-thumb,
+ews-textarea::-webkit-scrollbar-thumb {
     background: #1e1e1e;
     border-radius: 5px;
 }
 
-ews-about::-webkit-scrollbar-thumb:hover, ews-textarea::-webkit-scrollbar-thumb:hover {
+ews-about::-webkit-scrollbar-thumb:hover,
+ews-textarea::-webkit-scrollbar-thumb:hover {
     background: #282828;
 }

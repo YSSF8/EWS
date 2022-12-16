@@ -47,11 +47,9 @@ class EwsCounter extends HTMLElement {
 
     render() {
         this.shadow.innerHTML = this.value;
-        let value = this.value;
         let loop = setInterval(() => {
             this.event;
-            value++;
-            this.setAttribute('value', value);
+            this.setAttribute('value', this.shadow.innerHTML);
             if (this.shadow.innerHTML <= 0) {
                 clearInterval(loop);
             }
@@ -299,6 +297,83 @@ class EwsAnchor extends HTMLElement {
 
 customElements.define('ews-anchor', EwsAnchor);
 
+// Creates the "ews-day" element
+class EwsDay extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        switch (new Date().getDay()) {
+            case 0:
+                this.innerHTML = 'Sunday';
+                break;
+            case 1:
+                this.innerHTML = 'Monday';
+                break;
+            case 2:
+                this.innerHTML = 'Tuesday';
+                break;
+            case 3:
+                this.innerHTML = 'Wednesday';
+                break;
+            case 4:
+                this.innerHTML = 'Thursday';
+                break;
+            case 5:
+                this.innerHTML = 'Friday';
+                break;
+            case 6:
+                this.innerHTML = 'Saturday';
+                break;
+        }
+    }
+}
+
+customElements.define('ews-day', EwsDay);
+
+// Creates the "ews-timer" element
+class EwsTimer extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        for (let i = 0; i < 5; i++) {
+            const span = document.createElement('span');
+            this.appendChild(span);
+        }
+        
+        document.querySelector('ews-timer span:nth-child(2)').innerHTML = ':';
+        document.querySelector('ews-timer span:nth-child(4)').innerHTML = ':';
+
+        setInterval(() => {
+            const time = new Date();
+            let hours = addZero(time.getHours());
+            let minutes = addZero(time.getMinutes());
+            let seconds = addZero(time.getSeconds());
+
+            document.querySelector('ews-timer span:first-child').innerHTML = hours;
+            document.querySelector('ews-timer span:nth-child(3)').innerHTML = minutes;
+            document.querySelector('ews-timer span:last-child').innerHTML = seconds;
+
+            function addZero(num) {
+                return num < 10 ? `0${num}` : num;
+            }
+        }, 1000);
+    }
+}
+
+customElements.define('ews-timer', EwsTimer);
+
 // Creates the "ews-about" element
 class EwsAbout extends HTMLElement {
     constructor() {
@@ -322,7 +397,7 @@ class EwsAbout extends HTMLElement {
             <div class="close">X</div>
             <div>Name: EWS</div>
             <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-            <div>Version: 1.0</div>
+            <div>Version: 1.1</div>
             <div>Author: YSSF</div>
             <div>GitHub: <a href="https://github.com/YSSF8" target="_blank">https://github.com/YSSF8</a></div>
             <div>Repository: <a href="https://github.com/YSSF/EWS" target="_blank">https://github.com/YSSF/EWS</a></div>
@@ -389,6 +464,14 @@ class EwsAbout extends HTMLElement {
             <div class="code">
                 <div style="color: ${style.unactiveColor}">&lt;!-- add the "href" attribute to set a link --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-anchor <span style="color: ${style.attrColor}">href=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">https://youtu.be/dQw4w9WgXcQ</span>"</span></span></span>&gt;Example&lt;/<span style="color: ${style.defaultColor}">ews-anchor</span>&gt;</div>
+            </div>
+            <h4>Make an element shows the current day</h4>
+            <div class="code">
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-day</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-day</span>&gt;</div>
+            </div>
+            <h4>Make an element shows the hours/minutes/seconds</h4>
+            <div class="code">
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-timer</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-timer</span>&gt;</div>
             </div>
             <h4>To get the help</h4>
             <div class="code">
