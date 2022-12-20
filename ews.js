@@ -483,7 +483,7 @@ class EwsAbout extends HTMLElement {
             <div class="close">X</div>
             <div>Name: EWS</div>
             <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-            <div>Version: 1.1</div>
+            <div>Version: 1.2</div>
             <div>Author: YSSF</div>
             <div>GitHub: <a href="https://github.com/YSSF8" target="_blank">https://github.com/YSSF8</a></div>
             <div>Repository: <a href="https://github.com/YSSF/EWS" target="_blank">https://github.com/YSSF/EWS</a></div>
