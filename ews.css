@@ -11,6 +11,7 @@ ews-context,
 ews-anchor,
 ews-day,
 ews-timer,
+ews-finder,
 ews-about {
     font-family: 'Ubuntu', sans-serif;
 }
@@ -174,8 +175,21 @@ ews-anchor .url {
 }
 
 ews-day,
-ews-timer {
+ews-timer,
+ews-img-glr,
+ews-bing-img {
     display: block;
+}
+
+ews-finder input {
+    outline: none;
+    background: #1e1e1e;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+    padding: 7px;
+    width: 3in;
+    color: #fff;
+    font-family: 'Ubuntu', sans-serif;
 }
 
 ews-about {
@@ -218,6 +232,15 @@ ews-about .code {
     background: #1e1e1e;
     border-radius: 5px;
     padding: 7px;
+}
+
+ews-about a {
+    color: rgb(11, 133, 214);
+    text-decoration: none;
+}
+
+ews-about a:hover {
+    text-decoration: underline;
 }
 
 ews-about .close {

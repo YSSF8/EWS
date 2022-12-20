@@ -351,7 +351,7 @@ class EwsTimer extends HTMLElement {
             const span = document.createElement('span');
             this.appendChild(span);
         }
-        
+
         document.querySelector('ews-timer span:nth-child(2)').innerHTML = ':';
         document.querySelector('ews-timer span:nth-child(4)').innerHTML = ':';
 
@@ -373,6 +373,92 @@ class EwsTimer extends HTMLElement {
 }
 
 customElements.define('ews-timer', EwsTimer);
+
+// Creates the "ews-finder" element
+class EwsFinder extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Find...';
+        this.appendChild(input);
+
+        input.addEventListener('keyup', e => {
+            try {
+                if (e.key == 'Enter') {
+                    const para = document.querySelector(this.getAttribute('selector'));
+                    if (input.value != '') {
+                        let regExp = new RegExp(input.value, 'gi');
+                        para.innerHTML = (para.textContent).replace(regExp, '<mark>$&</mark>');
+                    }
+                }
+            } catch {
+                throw new Error('The text/paragraph can not be selected');
+            }
+        });
+    }
+}
+
+customElements.define('ews-finder', EwsFinder);
+
+// Creates the "ews-img-glr" element
+class EwsImgGlr extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        const attributes = this.attributes;
+
+        for (let i = 0; i < attributes.length; i++) {
+            const attributeName = attributes[i].name;
+            const attributeValue = attributes[i].value;
+
+            if (attributeName.startsWith('img')) {
+                const img = document.createElement('img');
+                img.src = attributeValue;
+                img.alt = '';
+                this.appendChild(img);
+            }
+        }
+    }
+}
+
+customElements.define('ews-img-glr', EwsImgGlr);
+
+class EwsBingImg extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        fetch('https://bing.biturl.top/')
+            .then(res => res.json())
+            .then(data => {
+                const img = document.createElement('img');
+                img.src = data['url'];
+                img.alt = '';
+                this.appendChild(img);
+            });
+    }
+}
+
+customElements.define('ews-bing-img', EwsBingImg);
 
 // Creates the "ews-about" element
 class EwsAbout extends HTMLElement {
@@ -472,6 +558,20 @@ class EwsAbout extends HTMLElement {
             <h4>Make an element shows the hours/minutes/seconds</h4>
             <div class="code">
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-timer</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-timer</span>&gt;</div>
+            </div>
+            <h4>Make a text finder element (to search a paragraph...)</h4>
+            <div class="code">
+                <div style="color: ${style.unactiveColor}">&lt;!-- inside the selector attribute you can select the text/paragraph you want to search in like the<br>query selector/CSS selector --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-finder <span style="color: ${style.attrColor}">selector=<span style="color: ${style.strColor}">".example"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-finder</span>&gt;</div>
+            </div>
+            <h4>Make an element to add a lot of images fast</h4>
+            <div class="code">
+                <div style="color: ${style.unactiveColor}">&lt;!-- To add images you can add attributes like this (img1="./example.png" img2="./example.jpg") --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-img-glr <span style="color: ${style.attrColor}">img1=<span style="color: ${style.strColor}">"./myImage1.png"</span> img2=<span style="color: ${style.strColor}">"./myImage2.png"</span> img3=<span style="color: ${style.strColor}">"./myImage3.jpg"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-img-glr</span>&gt;</div>
+            </div>
+            <h4>Add bing's image (API made by <a href="https://github.com/TimothyYe" target="_blank">TimothyYe</a>)</h4>
+            <div class="code">
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-bing-img</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-bing-img</span>&gt;</div>
             </div>
             <h4>To get the help</h4>
             <div class="code">
