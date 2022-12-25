@@ -1,3 +1,31 @@
+// Creates the "ews-button" element
+class EwsButton extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        this.addEventListener('click', e => {
+            let x = e.clientX, y = e.clientY;
+
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            this.appendChild(ripple);
+
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+
+            setTimeout(() => ripple.remove(), 500);
+        });
+    }
+}
+
+customElements.define('ews-button', EwsButton);
+
 // Creates the "ews-text" element
 class EwsText extends HTMLElement {
     constructor() {
@@ -460,6 +488,46 @@ class EwsBingImg extends HTMLElement {
 
 customElements.define('ews-bing-img', EwsBingImg);
 
+// Creates the "ews-dt" element
+class EwsDt extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    get value() {
+        return this.getAttribute('value');
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        this.innerHTML = `You can download in ${this.value}.`;
+        let value = this.value;
+
+        let loop = setInterval(() => {
+            value--;
+            this.innerHTML = `You can download in ${value}.`;
+
+            if (value <= 0) {
+                const blob = new Blob([this.getAttribute('file')], { type: 'text/plain' });
+
+                const btn = document.createElement('ews-button');
+                btn.innerHTML = `<a href="${URL.createObjectURL(blob)}" download="${this.getAttribute('filename')}.${this.getAttribute('filetype')}" style="color: #fff; text-decoration: none;">Download</a>`;
+                this.appendChild(btn);
+
+                console.log(getComputedStyle(this.querySelector('ews-button')).getPropertyValue('width'));
+                URL.revokeObjectURL(blob);
+
+                clearInterval(loop);
+            }
+        }, this.getAttribute('ms'));
+    }
+}
+
+customElements.define('ews-dt', EwsDt);
+
 // Creates the "ews-about" element
 class EwsAbout extends HTMLElement {
     constructor() {
@@ -483,7 +551,7 @@ class EwsAbout extends HTMLElement {
             <div class="close">X</div>
             <div>Name: EWS</div>
             <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-            <div>Version: 1.2</div>
+            <div>Version: 1.3</div>
             <div>Author: YSSF</div>
             <div>GitHub: <a href="https://github.com/YSSF8" target="_blank">https://github.com/YSSF8</a></div>
             <div>Repository: <a href="https://github.com/YSSF/EWS" target="_blank">https://github.com/YSSF/EWS</a></div>
@@ -497,6 +565,7 @@ class EwsAbout extends HTMLElement {
             <h3>How to use</h3>
             <h4>Make a ready button (styled)</h4>
             <div class="code">
+                <div style="color: ${style.unactiveColor}">&lt;!-- This button has the ripple effect --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-button</span>&gt;Download&lt;/<span style="color: ${style.defaultColor}">ews-button</span>&gt;</div>
             </div>
             <h4>Make text input/textarea (styled)</h4>
@@ -572,6 +641,11 @@ class EwsAbout extends HTMLElement {
             <h4>Add bing's image (API made by <a href="https://github.com/TimothyYe" target="_blank">TimothyYe</a>)</h4>
             <div class="code">
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-bing-img</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-bing-img</span>&gt;</div>
+            </div>
+            <h4>Add a counter with a download button</h4>
+            <div class="code">
+                <div style="color: ${style.unactiveColor}">&lt;!-- This element allows you to make a file download with a timer, when the timer hits the 0 the<br>download button will appear, so if you wanna make a site with a premium plans you can use it --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-dt <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"5"</span> ms=<span style="color: ${style.strColor}">"1000"</span> file=<span style="color: ${style.strColor}">"./ews.js"</span> filename=<span style="color: ${style.strColor}">"ews"</span> filetype=<span style="color: ${style.strColor}">"js"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-dt</span>&gt;</div>
             </div>
             <h4>To get the help</h4>
             <div class="code">

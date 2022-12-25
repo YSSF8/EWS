@@ -12,6 +12,7 @@ ews-anchor,
 ews-day,
 ews-timer,
 ews-finder,
+ews-dt,
 ews-about {
     font-family: 'Ubuntu', sans-serif;
 }
@@ -23,14 +24,38 @@ ews-button {
     cursor: pointer;
     display: flex;
     width: 10rem;
+    position: relative;
     word-break: break-all;
     justify-content: center;
+    overflow: hidden;
     align-items: center;
     transition: background 200ms;
 }
 
 ews-button:hover {
     background: rgb(9, 122, 197);
+}
+
+ews-button .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    opacity: .4;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: ripple 500ms linear infinite;
+}
+
+@keyframes ripple {
+    0% {
+        width: 0;
+        height: 0;
+    }
+    100% {
+        width: 500px;
+        height: 500px;
+        opacity: 0;
+    }
 }
 
 ews-text {
@@ -50,7 +75,8 @@ ews-text::-webkit-scrollbar {
 }
 
 ews-counter,
-ews-ip-address {
+ews-ip-address,
+ews-dt {
     display: block;
 }
 
