@@ -1,31 +1,3 @@
-// Creates the "ews-button" element
-class EwsButton extends HTMLElement {
-    constructor() {
-        super();
-    }
-
-    connectedCallback() {
-        this.render();
-    }
-
-    render() {
-        this.addEventListener('click', e => {
-            let x = e.clientX, y = e.clientY;
-
-            const ripple = document.createElement('span');
-            ripple.classList.add('ripple');
-            this.appendChild(ripple);
-
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-
-            setTimeout(() => ripple.remove(), 500);
-        });
-    }
-}
-
-customElements.define('ews-button', EwsButton);
-
 // Creates the "ews-text" element
 class EwsText extends HTMLElement {
     constructor() {
@@ -423,12 +395,19 @@ class EwsFinder extends HTMLElement {
                 if (e.key == 'Enter') {
                     const para = document.querySelector(this.getAttribute('selector'));
                     if (input.value != '') {
-                        let regExp = new RegExp(input.value, 'gi');
-                        para.innerHTML = (para.textContent).replace(regExp, '<mark>$&</mark>');
+                        try {
+                            const regExp = new RegExp(input.value, 'gi');
+                            para.innerHTML = (para.textContent).replace(regExp, `<mark style="background-color: ${this.getAttribute('color')}; color: ${this.getAttribute('txtcolor')}; border-radius: ${this.getAttribute('rounded')}px;">$&</mark>`);
+                        } catch (err) {
+                            input.value = err;
+                            input.style.color = '#f00';
+                            input.setAttribute('disabled', '');
+                            throw new Error(err);
+                        }
                     }
                 }
             } catch {
-                throw new Error('The text/paragraph can not be selected');
+                throw new Error('The text/paragraph cannot be selected');
             }
         });
     }
@@ -465,6 +444,7 @@ class EwsImgGlr extends HTMLElement {
 
 customElements.define('ews-img-glr', EwsImgGlr);
 
+// Creates the "ews-bing-img" element
 class EwsBingImg extends HTMLElement {
     constructor() {
         super();
@@ -517,7 +497,6 @@ class EwsDt extends HTMLElement {
                 btn.innerHTML = `<a href="${URL.createObjectURL(blob)}" download="${this.getAttribute('filename')}.${this.getAttribute('filetype')}" style="color: #fff; text-decoration: none;">Download</a>`;
                 this.appendChild(btn);
 
-                console.log(getComputedStyle(this.querySelector('ews-button')).getPropertyValue('width'));
                 URL.revokeObjectURL(blob);
 
                 clearInterval(loop);
@@ -527,6 +506,356 @@ class EwsDt extends HTMLElement {
 }
 
 customElements.define('ews-dt', EwsDt);
+
+// Creates the "ews-ap" element
+class EwsAudioPlayer extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        let isPlaying = false;
+
+        const audio = new Audio(this.getAttribute('src'));
+
+        this.innerHTML = `
+            <button>${this.getAttribute('playtext') || 'Play'}</button>
+            <div id="range-container">
+                <div id="thumb"></div>
+                <div id="track"></div>
+            </div>
+        `;
+
+        const toggle = this.querySelector('button');
+
+        toggle.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+
+            if (isPlaying) {
+                toggle.innerHTML = this.getAttribute('pausetext') || 'Pause';
+                audio.play();
+            } else {
+                toggle.innerHTML = this.getAttribute('playtext') || 'Play';
+                audio.pause();
+            }
+        });
+
+        const rangeContainer = this.querySelector("#range-container");
+        const thumb = this.querySelector("#thumb");
+        const track = this.querySelector("#track");
+
+        let value = this.getAttribute('value') || 0;
+        let isDragging = false;
+
+        function updateValue() {
+            const thumbLeft = thumb.offsetLeft;
+            const containerWidth = rangeContainer.offsetWidth - thumb.offsetWidth;
+            if (!isNaN(thumbLeft) && !isNaN(containerWidth) && containerWidth !== 0) {
+                value = Math.round((thumbLeft / containerWidth) * 100);
+            }
+        }
+
+        function handleMouseDown() {
+            isDragging = true;
+        }
+
+        function handleMouseMove(event) {
+            if (!isDragging) {
+                return;
+            }
+            let thumbLeft = event.clientX - rangeContainer.offsetLeft - (thumb.offsetWidth / 2);
+            thumbLeft = Math.max(0, Math.min(thumbLeft, rangeContainer.offsetWidth - thumb.offsetWidth));
+            thumb.style.left = thumbLeft + "px";
+            track.style.width = thumbLeft + "px";
+            updateValue();
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+
+            const seekTime = (value / 100) * audio.duration;
+            audio.currentTime = seekTime;
+        }
+
+        thumb.addEventListener("mousedown", handleMouseDown);
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+
+        updateValue();
+
+        audio.addEventListener("timeupdate", () => {
+            const duration = audio.duration;
+            const currentTime = audio.currentTime;
+            const progress = (currentTime / duration) * 100;
+
+            const containerWidth = rangeContainer.offsetWidth - thumb.offsetWidth;
+            const thumbLeft = (progress / 100) * containerWidth;
+            thumb.style.left = thumbLeft + "px";
+            track.style.width = thumbLeft + "px";
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            toggle.innerHTML = this.getAttribute('playtext') || 'Play';
+            thumb.style.left = rangeContainer.offsetWidth - thumb.offsetWidth + "px";
+            track.style.width = rangeContainer.offsetWidth - thumb.offsetWidth + "px";
+            updateValue();
+        });
+    }
+}
+
+customElements.define('ews-ap', EwsAudioPlayer);
+
+// Creates the "ews-ddm" element
+class EwsDropDownMenu extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        this.style.display = "none";
+
+        let isOpened = false;
+
+        const element = document.createElement("div");
+        element.classList.add("ews-ddm");
+        const options = this.querySelectorAll("option");
+        const elements = document.createElement("div");
+
+        document.body.insertBefore(element, this);
+
+        const rect = element.getBoundingClientRect();
+
+        elements.style.left = `${rect.x}px`;
+        elements.style.top = `${rect.y + 55}px`;
+
+        for (let i = 0; i < options.length; i++) {
+            element.innerHTML = options[0].textContent;
+
+            const eachElement = document.createElement("div");
+            eachElement.classList.add("ews-ddm-option");
+            eachElement.innerHTML = options[i].innerHTML;
+            elements.appendChild(eachElement);
+
+            const eventAttr = options[i].getAttribute("on");
+
+            if (eventAttr) {
+                const eventDefs = eventAttr.split("@@");
+
+                for (let j = 0; j < eventDefs.length; j++) {
+                    const [eventType, eventHandler] = eventDefs[j].split("::");
+
+                    if (!eventType.startsWith("#")) {
+                        throw new Error(`Event type '${eventType}' should start with '#' symbol`);
+                    }
+
+                    const eventName = eventType.slice(1);
+
+                    eachElement.addEventListener(eventName, () => {
+                        eval(eventHandler);
+                    });
+                }
+            }
+
+            eachElement.addEventListener("click", () => {
+                isOpened = false;
+                element.innerHTML = options[i].textContent;
+                elements.style.opacity = 0;
+                setTimeout(() => elements.remove(), 200);
+            });
+        }
+
+        element.addEventListener("click", () => {
+            isOpened = !isOpened;
+
+            if (isOpened) {
+                elements.classList.add("ews-ddm-options");
+                document.body.appendChild(elements);
+
+                const elementsRect = elements.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const distanceToBottom = viewportHeight - elementsRect.bottom;
+
+                if (distanceToBottom < 0) {
+                    elements.style.top = `${parseFloat(elements.style.top) + distanceToBottom - 10}px`;
+                }
+
+                setTimeout(() => {
+                    elements.style.opacity = 1;
+                });
+            } else {
+                elements.style.opacity = 0;
+                setTimeout(() => elements.remove(), 200);
+            }
+
+            document.addEventListener("click", e => {
+                if (!element.contains(e.target) && !elements.contains(e.target)) {
+                    isOpened = false;
+                    elements.style.opacity = 0;
+                    setTimeout(() => elements.remove(), 200);
+                }
+            });
+        });
+    }
+}
+
+customElements.define('ews-ddm', EwsDropDownMenu);
+
+// Creates the "ews-charts" element
+class EwsCharts extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        const charts = [];
+        for (let i = 1; i <= Object.keys(this.attributes).length; i++) {
+            const chartAttr = this.getAttribute(`chart${i}`);
+            if (chartAttr) {
+                const chart = {};
+                chartAttr.split(';').forEach((property) => {
+                    const [name, value] = property.split(':');
+                    if (name && value) {
+                        chart[name.trim()] = value.trim();
+                    }
+                });
+
+                const text = chart.text;
+                if (text && !(/^'.*'$/.test(text))) {
+                    throw new Error(`Chart text property "${text}" must be enclosed in single quotes`);
+                }
+
+                charts.push(chart);
+            }
+        }
+
+        for (const chart of charts) {
+            const chartElement = document.createElement('div');
+            chartElement.style.height = '30px';
+            chartElement.style.width = `${parseInt(chart.value) * 10}px`;
+            chartElement.style.backgroundColor = chart.background || 'gray';
+
+            const text = chart.text;
+            if (text) {
+                chartElement.innerText = text.slice(1, -1);
+            }
+
+            this.appendChild(chartElement);
+        }
+    }
+}
+
+customElements.define('ews-charts', EwsCharts);
+
+// Creates the "ews-collapsible" element
+class EwsCollapsible extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        const content = document.createElement('div');
+        content.classList.add('collapsible-content');
+        content.innerHTML = this.innerHTML;
+        this.innerHTML = '';
+
+        const heading = document.createElement('div');
+        heading.classList.add('collapsible-heading');
+        heading.innerHTML = `${this.getAttribute('value')} ${this.getAttribute('expanded') === 'true' ? '&#9656;' : '&#9662;'}`;
+        this.appendChild(heading);
+
+        this.appendChild(content);
+
+        let isCollapsed = this.getAttribute('expanded') === 'false' || false;
+        this.setAttribute('aria-expanded', !isCollapsed);
+
+        content.style.maxHeight = isCollapsed ? '0px' : content.scrollHeight + 'px';
+
+        heading.addEventListener('click', () => {
+            const expanded = this.getAttribute('aria-expanded') === 'true' || false;
+            this.setAttribute('aria-expanded', !expanded);
+            content.style.maxHeight = expanded ? '0px' : content.scrollHeight + 'px';
+            heading.innerHTML = `${this.getAttribute('value')} ${expanded ? '&#9662;' : '&#9656;'}`;
+        });
+    }
+}
+
+customElements.define('ews-collapsible', EwsCollapsible);
+
+// Creates the "ews-sort" element
+class EwsSort extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        const sortMenu = document.createElement('select');
+        sortMenu.classList.add('sort-menu');
+        sortMenu.innerHTML = `
+            <option value="az">A-Z</option>
+            <option value="za">Z-A</option>
+        `;
+        this.appendChild(sortMenu);
+
+        const items = Array.from(this.children);
+        const defaultSort = this.getAttribute('default');
+
+        if (defaultSort) {
+            if (defaultSort === 'A-Z') {
+                sortMenu.value = 'az';
+                items.sort((a, b) => a.textContent.localeCompare(b.textContent));
+            } else if (defaultSort === 'Z-A') {
+                sortMenu.value = 'za';
+                items.sort((a, b) => b.textContent.localeCompare(a.textContent));
+            } else if (defaultSort === 'random') {
+                sortMenu.value = Math.random() < 0.5 ? 'az' : 'za';
+                items.sort(() => Math.random() - 0.5);
+            } else {
+                throw new Error('Invalid default sort option. Please choose "A-Z", "Z-A", or "random"');
+            }
+        }
+
+        for (const item of items) {
+            this.appendChild(item);
+        }
+
+        sortMenu.addEventListener('change', () => {
+            const sortBy = sortMenu.value;
+
+            if (sortBy === 'az') {
+                items.sort((a, b) => a.textContent.localeCompare(b.textContent));
+            } else if (sortBy === 'za') {
+                items.sort((a, b) => b.textContent.localeCompare(a.textContent));
+            }
+
+            for (const item of items) {
+                this.appendChild(item);
+            }
+        });
+    }
+}
+
+customElements.define('ews-sort', EwsSort);
 
 // Creates the "ews-about" element
 class EwsAbout extends HTMLElement {
@@ -541,53 +870,55 @@ class EwsAbout extends HTMLElement {
     render() {
         document.body.style.pointerEvents = 'none';
         document.body.style.userSelect = 'none';
+
         const style = {
             defaultColor: 'rgb(11, 133, 214)',
-            unactiveColor: 'rgb(32, 134, 32)',
+            inactiveColor: 'rgb(32, 134, 32)',
             attrColor: 'rgb(65, 176, 219)',
-            strColor: 'rgb(151, 83, 19)'
+            strColor: 'rgb(206, 145, 120)'
         }
+
         this.innerHTML = `
             <div class="close">X</div>
             <div>Name: EWS</div>
             <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-            <div>Version: 1.3</div>
+            <div>Version: e2</div>
             <div>Author: YSSF</div>
             <div>GitHub: <a href="https://github.com/YSSF8" target="_blank">https://github.com/YSSF8</a></div>
             <div>Repository: <a href="https://github.com/YSSF/EWS" target="_blank">https://github.com/YSSF/EWS</a></div>
             <h3>How to import</h3>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- Add both of these to the "head" tag<br>Linking with JavaScript --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- Add both of these to the "head" tag<br>Linking with JavaScript --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">script <span style="color: ${style.attrColor}">src=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">./ews.js</span>"</span> defer</span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">script</span>&gt;</div>
-                <div style="color: ${style.unactiveColor}">&lt;!-- Linking with CSS --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- Linking with CSS --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">link <span style="color: ${style.attrColor}">rel=<span style="color: ${style.strColor}">"stylesheet"</span> href=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">./ews.css</span>"</span></span></span>&gt;</div>
             </div>
             <h3>How to use</h3>
             <h4>Make a ready button (styled)</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- This button has the ripple effect --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- This button has the ripple effect --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-button</span>&gt;Download&lt;/<span style="color: ${style.defaultColor}">ews-button</span>&gt;</div>
             </div>
             <h4>Make text input/textarea (styled)</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- Text input --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- Text input --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-text</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-text</span>&gt;<div>
                 <br>
-                <div style="color: ${style.unactiveColor}">&lt;!-- Textarea --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- Textarea --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-textarea</span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-textarea</span>&gt;</div>
             </div>
             </div>
             </div>
             <h4>Make auto counting element</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- ms means milliseconds, event means that you will choose between increasing or decreasing<br>to count (inc, dec) --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- ms means milliseconds, event means that you will choose between increasing or decreasing<br>to count (inc, dec) --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-counter</span> <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"0"</span> ms=<span style="color: ${style.strColor}">"1000"</span> event=<span style="color: ${style.strColor}">"inc"</span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-counter</span>&gt;</div>
             </div>
             <h4>Make ip address viewer element</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- before means that it will put a text before the ip address, after means that it will put a text<br>after the ip address --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- before means that it will put a text before the ip address, after means that it will put a text<br>after the ip address --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-ip-address</span> <span style="color: ${style.attrColor}">before=<span style="color: ${style.strColor}">"Your IP Adress is: '"</span> after=<span style="color: ${style.strColor}">"'"</span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-ip-address</span>&gt;</div>
-                <div style="color: ${style.unactiveColor}">&lt;!-- The result is (Your IP address is: 'ip-address') --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- The result is (Your IP address is: 'ip-address') --&gt;</div>
             </div>
             <h4>Make a lot of counted elements</h4>
             <div class="code">
@@ -595,17 +926,17 @@ class EwsAbout extends HTMLElement {
             </div>
             <h4>Make a checkbox (styled)</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- the "checked" attribue can be true or false, if but it's not important if you want it false --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- the "checked" attribue can be true or false, if but it's not important if you want it false --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-checkbox <span style="color: ${style.attrColor}">checked=<span style="color: ${style.strColor}">"true"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-checkbox</span>&gt;</div>
             </div>
             <h4>Make a progress bar</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- ms means milliseconds, percentage is the first percentage the "progress bar" starts with --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- ms means milliseconds, percentage is the first percentage the "progress bar" starts with --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-progress-bar <span style="color: ${style.attrColor}">ms=<span style="color: ${style.strColor}">"100"</span> percentage=<span style="color: ${style.strColor}">"0"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-progress-bar</span>&gt;</div>
             </div>
             <h4>Make a custom context menu</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- hr adds a line, you can onclick attribute and set functions with JavaScript to make things<br>happening --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- hr adds a line, you can onclick attribute and set functions with JavaScript to make things<br>happening --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-context</span>&gt;
                     <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">option</span>&gt;Copy&lt;/<span style="color: ${style.defaultColor}">option</span>&gt;</div>
                     <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">option</span>&gt;Paste&lt;/<span style="color: ${style.defaultColor}">option</span>&gt;</div>
@@ -617,7 +948,7 @@ class EwsAbout extends HTMLElement {
             </div>
             <h4>Make anchor element (styled)</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- add the "href" attribute to set a link --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- add the "href" attribute to set a link --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-anchor <span style="color: ${style.attrColor}">href=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">https://youtu.be/dQw4w9WgXcQ</span>"</span></span></span>&gt;Example&lt;/<span style="color: ${style.defaultColor}">ews-anchor</span>&gt;</div>
             </div>
             <h4>Make an element shows the current day</h4>
@@ -630,13 +961,13 @@ class EwsAbout extends HTMLElement {
             </div>
             <h4>Make a text finder element (to search a paragraph...)</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- inside the selector attribute you can select the text/paragraph you want to search in like the<br>query selector/CSS selector --&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- inside the selector attribute you can select the text/paragraph you want to search in like the<br>query selector/CSS selector --&gt;</div>
                 <div>&lt;<span style="color: ${style.defaultColor}">ews-finder <span style="color: ${style.attrColor}">selector=<span style="color: ${style.strColor}">".example"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-finder</span>&gt;</div>
             </div>
             <h4>Make an element to add a lot of images fast</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- To add images you can add attributes like this (img1="./example.png" img2="./example.jpg") --&gt;</div>
-                <div>&lt;<span style="color: ${style.defaultColor}">ews-img-glr <span style="color: ${style.attrColor}">img1=<span style="color: ${style.strColor}">"./myImage1.png"</span> img2=<span style="color: ${style.strColor}">"./myImage2.png"</span> img3=<span style="color: ${style.strColor}">"./myImage3.jpg"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-img-glr</span>&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- To add images you can add attributes like this (img1="./example.png" img2="./example.jpg") --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-img-glr <span style="color: ${style.attrColor}">img1=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">./myImage1.png</span>"</span> img2=<span style="color: ${style.strColor}">"<span style="text-decoration: underline;">./myImage2.png</span>"</span> img3=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">./myImage3.jpg</span>"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-img-glr</span>&gt;</div>
             </div>
             <h4>Add bing's image (API made by <a href="https://github.com/TimothyYe" target="_blank">TimothyYe</a>)</h4>
             <div class="code">
@@ -644,8 +975,44 @@ class EwsAbout extends HTMLElement {
             </div>
             <h4>Add a counter with a download button</h4>
             <div class="code">
-                <div style="color: ${style.unactiveColor}">&lt;!-- This element allows you to make a file download with a timer, when the timer hits the 0 the<br>download button will appear, so if you wanna make a site with a premium plans you can use it --&gt;</div>
-                <div>&lt;<span style="color: ${style.defaultColor}">ews-dt <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"5"</span> ms=<span style="color: ${style.strColor}">"1000"</span> file=<span style="color: ${style.strColor}">"./ews.js"</span> filename=<span style="color: ${style.strColor}">"ews"</span> filetype=<span style="color: ${style.strColor}">"js"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-dt</span>&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- This element allows you to make a file download with a timer, when the timer hits the 0 the<br>download button will appear, so if you wanna make a site with a premium plans you can use it --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-dt <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"5"</span> ms=<span style="color: ${style.strColor}">"1000"</span> file=<span style="color: ${style.strColor}">"<span style="text-decoration: underline">./ews.js</span>"</span> filename=<span style="color: ${style.strColor}">"ews"</span> filetype=<span style="color: ${style.strColor}">"js"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-dt</span>&gt;</div>
+            </div>
+            <h4>Custom modern audio player</h4>
+            <div class="code">
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-ap <span style="color: ${style.attrColor}">src=<span style="color: ${style.strColor}">"[AUDIO_PATH/AUDIO_LINK]"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-ap</span>&gt;</div>
+            </div>
+            <h4>Custom dropdown menu</h4>
+            <div class="code">
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-ddm</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">option <span style="color: ${style.attrColor}">on=<span style="color: ${style.strColor}">"#mousemove::console.log('Hello, Josh');@@#mouseout::console.log('Goodbye, Josh');"</span></span></span>&gt;<br>Josh&lt;/<span style="color: ${style.defaultColor}">option</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">option <span style="color: ${style.attrColor}">on=<span style="color: ${style.strColor}">"#mousemove::console.log('Hello, Marry');@@#mouseout::console.log('Goodbye, Marry');"</span></span></span>&gt;<br>Marry&lt;/<span style="color: ${style.defaultColor}">option</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">option <span style="color: ${style.attrColor}">on=<span style="color: ${style.strColor}">"#mousemove::console.log('Hello, Peter');@@#mouseout::console.log('Goodbye, Peter');"</span></span></span>&gt;<br>Peter&lt;/<span style="color: ${style.defaultColor}">option</span>&gt;</div>
+                <div>&lt;/<span style="color: ${style.defaultColor}">ews-ddm</span>&gt;</div>
+            </div>
+            <h4>Charts system</h4>
+            <div class="code">
+                <div style="color: ${style.inactiveColor}">&lt;!-- You can use the chart[NUMBER] attributes to add charts --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-charts <span style="color: ${style.attrColor}">chart1=<span style="color: ${style.strColor}">"value: 40; background: red; text: 'Red Text';"</span>&nbsp;<span>chart2=<span style="color: ${style.strColor}">"value: 30; background: green;<br>text: 'Green Text';"</span>&nbsp;<span>chart3=<span style="color: ${style.strColor}">"value: 20; background: blue; text: 'Blue Text';"</span></span></span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-charts</span>&gt;</div>
+            </div>
+            <h4>Collapsible content</h4>
+            <div class="code">
+                <div style="color: ${style.inactiveColor}">&lt;!-- Get it expanded by default by setting the "expanded" attribute to true, else false --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-collapsible <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"People"</span>&nbsp;expanded=<span style="color: ${style.strColor}">"false"</span></span></span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Josh&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Marry&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Peter&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&lt;/<span style="color: ${style.defaultColor}">ews-collapsible</span>&gt;</div>
+            </div>
+            <h4>Sorting system</h4>
+            <div class="code">
+                <div style="color: ${style.inactiveColor}">&lt;!-- The "default" attribute only works with these values: "A-Z", "Z-A", and "random" --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-sort <span style="color: ${style.attrColor}">default=<span style="color: ${style.strColor}">"A-Z/Z-A/random"</span></span></span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Aaron&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Barbra&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Camila&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Daisy&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
+                <div>&lt;/<span style="color: ${style.defaultColor}">ews-sort</span>&gt;</div>
             </div>
             <h4>To get the help</h4>
             <div class="code">

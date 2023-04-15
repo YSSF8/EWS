@@ -13,6 +13,7 @@ ews-day,
 ews-timer,
 ews-finder,
 ews-dt,
+ews-script,
 ews-about {
     font-family: 'Ubuntu', sans-serif;
 }
@@ -24,38 +25,15 @@ ews-button {
     cursor: pointer;
     display: flex;
     width: 10rem;
-    position: relative;
     word-break: break-all;
     justify-content: center;
-    overflow: hidden;
     align-items: center;
+    margin: 5px 0 5px 0;
     transition: background 200ms;
 }
 
 ews-button:hover {
     background: rgb(9, 122, 197);
-}
-
-ews-button .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: #fff;
-    opacity: .4;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: ripple 500ms linear infinite;
-}
-
-@keyframes ripple {
-    0% {
-        width: 0;
-        height: 0;
-    }
-    100% {
-        width: 500px;
-        height: 500px;
-        opacity: 0;
-    }
 }
 
 ews-text {
@@ -72,12 +50,6 @@ ews-text {
 
 ews-text::-webkit-scrollbar {
     height: 0;
-}
-
-ews-counter,
-ews-ip-address,
-ews-dt {
-    display: block;
 }
 
 ews-to-num {
@@ -200,10 +172,18 @@ ews-anchor .url {
     z-index: 9999;
 }
 
+ews-counter,
+ews-ip-address,
+ews-dt,
 ews-day,
 ews-timer,
 ews-img-glr,
-ews-bing-img {
+ews-bing-img,
+ews-ap,
+.ews-ddm,
+ews-charts,
+ews-collapsible,
+ews-sort {
     display: block;
 }
 
@@ -218,9 +198,158 @@ ews-finder input {
     font-family: 'Ubuntu', sans-serif;
 }
 
+ews-ap {
+    border-radius: 100px;
+    background-color: #1e1e1e;
+    padding: 15px;
+    max-width: 2.5in;
+    display: inline-flex;
+}
+
+ews-ap button {
+    border: none;
+    border-radius: 10px;
+    padding: 7px;
+    background-color: rgb(11, 133, 214);
+    cursor: pointer;
+    color: #fff;
+    transition: background 200ms;
+}
+
+ews-ap button:hover {
+    background-color: rgb(9, 122, 197);
+}
+
+ews-ap #range-container {
+    position: relative;
+    width: 2.4in;
+    height: 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+    margin: 10px 7px;
+}
+
+ews-ap #thumb {
+    position: absolute;
+    top: -5px;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgb(11, 133, 214);
+    cursor: pointer;
+}
+
+ews-ap #track {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    background-color: rgb(9, 122, 197);
+    border-radius: 5px;
+}
+
+.ews-ddm {
+    font-family: 'Ubuntu', sans-serif;
+    padding: 7px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    background-color: #121212;
+    max-width: 2in;
+    cursor: pointer;
+    margin: 5px 0 5px 0;
+    transition: background 200ms;
+}
+
+.ews-ddm:hover {
+    background-color: #1e1e1e;
+}
+
+.ews-ddm-options {
+    font-family: 'Ubuntu', sans-serif;
+    padding: 7px;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    background-color: #121212;
+    min-width: 2in;
+    position: absolute;
+    opacity: 0;
+    transition: opacity 200ms;
+}
+
+.ews-ddm-option {
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 200ms;
+}
+
+.ews-ddm-option:hover {
+    background-color: #1e1e1e;
+}
+
+ews-charts div {
+    display: flex;
+    align-items: center;
+    padding-left: 7px;
+    margin: 5px 5px 5px 0;
+    border-radius: 8px;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+ews-collapsible {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+ews-collapsible .collapsible-heading {
+    color: rgb(11, 133, 214);
+    cursor: pointer;
+    width: max-content;
+}
+
+ews-collapsible .collapsible-heading:active {
+    color: rgb(9, 122, 197);
+}
+
+ews-collapsible .collapsible-content {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    padding: 7px;
+    max-width: 2in;
+    overflow: hidden;
+    margin: 5px 0 5px 0;
+    transition: max-height 200ms ease-in-out;
+}
+
+ews-collapsible .collapsible-content * {
+    padding: 5px;
+}
+
+ews-sort {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    max-width: 2in;
+    padding: 7px;
+    position: relative;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+ews-sort * {
+    padding: 7px;
+}
+
+ews-sort select {
+    background-color: #282828;
+    border-radius: 8px;
+    color: #fff;
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    outline: none;
+}
+
 ews-about {
     background: #121212;
-    border-radius: 5px;
+    border-radius: 10px;
     position: fixed;
     left: 50%;
     top: 50%;
@@ -295,6 +424,7 @@ ews-about .close::after {
     position: absolute;
     top: 37px;
     font-size: 10px;
+    pointer-events: none;
 }
 
 ews-about::-webkit-scrollbar {
