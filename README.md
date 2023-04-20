@@ -2,7 +2,7 @@
 
 <div>Name: EWS</div>
 <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-<div>Version: e2</div>
+<div>Version: e2.1</div>
 <div>Author: YSSF</div>
 
 ### To load into your HTML
