@@ -777,7 +777,7 @@ class EwsCollapsible extends HTMLElement {
 
         const heading = document.createElement('div');
         heading.classList.add('collapsible-heading');
-        heading.innerHTML = `${this.getAttribute('value')} ${this.getAttribute('expanded') === 'true' ? '&#9656;' : '&#9662;'}`;
+        heading.innerHTML = `${this.getAttribute('value')} ${this.getAttribute('expanded') === 'true' ? '&#9662;' : '&#9656;'}`;
         this.appendChild(heading);
 
         this.appendChild(content);
@@ -791,7 +791,7 @@ class EwsCollapsible extends HTMLElement {
             const expanded = this.getAttribute('aria-expanded') === 'true' || false;
             this.setAttribute('aria-expanded', !expanded);
             content.style.maxHeight = expanded ? '0px' : content.scrollHeight + 'px';
-            heading.innerHTML = `${this.getAttribute('value')} ${expanded ? '&#9662;' : '&#9656;'}`;
+            heading.innerHTML = `${this.getAttribute('value')} ${expanded ? '&#9656;' : '&#9662;'}`;
         });
     }
 }
@@ -857,6 +857,134 @@ class EwsSort extends HTMLElement {
 
 customElements.define('ews-sort', EwsSort);
 
+class EwsImageSlide extends HTMLElement {
+    constructor() {
+        super();
+        this.currentSlide = 0;
+    }
+
+    connectedCallback() {
+        this.render();
+    }
+
+    render() {
+        let imageLinks = [];
+        for (let i = 1; i <= Infinity; i++) {
+            const src = this.getAttribute(`src${i}`);
+            if (!src) break;
+            imageLinks.push(src);
+        }
+
+        const slider = document.createElement("div");
+        slider.classList.add("slider");
+
+        const slide = document.createElement("div");
+        slide.classList.add("slide");
+
+        const img = document.createElement("img");
+        img.setAttribute("src", imageLinks[this.currentSlide]);
+        img.setAttribute("alt", `Slide ${this.currentSlide + 1}`);
+
+        slide.appendChild(img);
+        slider.appendChild(slide);
+
+        const prevButton = document.createElement("button");
+        prevButton.classList.add("prev");
+        prevButton.textContent = "<";
+        prevButton.addEventListener("click", () => {
+            this.showSlide(this.currentSlide - 1, imageLinks);
+        });
+
+        const nextButton = document.createElement("button");
+        nextButton.classList.add("next");
+        nextButton.textContent = ">";
+        nextButton.addEventListener("click", () => {
+            this.showSlide(this.currentSlide + 1, imageLinks);
+        });
+
+        this.appendChild(slider);
+        this.appendChild(prevButton);
+        this.appendChild(nextButton);
+
+        this.showSlide(0, imageLinks);
+    }
+
+    showSlide(slideIndex, imageLinks) {
+        if (slideIndex >= imageLinks.length) {
+            slideIndex = 0;
+        } else if (slideIndex < 0) {
+            slideIndex = imageLinks.length - 1;
+        }
+        const slide = this.querySelector(".slide");
+        slide.style.opacity = 0;
+        setTimeout(() => {
+            const img = this.querySelector(".slide img");
+            img.setAttribute("src", imageLinks[slideIndex]);
+            img.setAttribute("alt", `Slide ${slideIndex + 1}`);
+            slide.style.opacity = 1;
+            this.currentSlide = slideIndex;
+        }, 500);
+    }
+}
+
+customElements.define("ews-is", EwsImageSlide);
+
+// Creates the "ews-sr" element
+class EwsSr extends HTMLElement {
+    constructor() {
+        super();
+        this.stars = this.getAttribute('maxvalue') || 5;
+        this.value = 0;
+    }
+
+    connectedCallback() {
+        this.render();
+        const stars = this.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                this.setAttribute('value', index + 1);
+            });
+        });
+    }
+
+    render() {
+        const STAR_ICON = `
+            <svg viewBox="0 0 24 24">
+              <path d="M12 1.302l3.094 6.215 6.906 1-5 4.854 1.173 6.821L12 18.819l-6.173 3.484L7 12.371 2 7.517l6.906-1L12 1.302z"/>
+            </svg>
+        `;
+
+        let starsHtml = '';
+        for (let i = 1; i <= this.stars; i++) {
+            const active = i <= this.value ? 'active' : '';
+            starsHtml += `<i class="star ${active}" data-index="${i}">${STAR_ICON}</i>`;
+        }
+
+        this.innerHTML = starsHtml;
+
+        const starElems = this.querySelectorAll('.star');
+        starElems.forEach(starElem => {
+            starElem.addEventListener('click', () => {
+                const value = parseInt(starElem.dataset.index);
+                this.setAttribute('value', value);
+            });
+        });
+    }
+
+    static get observedAttributes() {
+        return ['value'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'value' && oldValue !== newValue) {
+            this.value = parseInt(newValue, 10) || 0;
+            this.render();
+        }
+    }
+}
+
+customElements.define('ews-sr', EwsSr);
+
 // Creates the "ews-about" element
 class EwsAbout extends HTMLElement {
     constructor() {
@@ -872,9 +1000,9 @@ class EwsAbout extends HTMLElement {
         document.body.style.userSelect = 'none';
 
         const style = {
-            defaultColor: 'rgb(11, 133, 214)',
-            inactiveColor: 'rgb(32, 134, 32)',
-            attrColor: 'rgb(65, 176, 219)',
+            defaultColor: 'rgb(86, 156, 214)',
+            inactiveColor: 'rgb(87, 166, 74)',
+            attrColor: 'rgb(156, 220, 254)',
             strColor: 'rgb(206, 145, 120)'
         }
 
@@ -882,7 +1010,7 @@ class EwsAbout extends HTMLElement {
             <div class="close">X</div>
             <div>Name: EWS</div>
             <div>Description: <b>E</b>asy <b>W</b>eb un<b>S</b>uffering | Gives you more HTML tags</div>
-            <div>Version: e2</div>
+            <div>Version: e2.1</div>
             <div>Author: YSSF</div>
             <div>GitHub: <a href="https://github.com/YSSF8" target="_blank">https://github.com/YSSF8</a></div>
             <div>Repository: <a href="https://github.com/YSSF/EWS" target="_blank">https://github.com/YSSF/EWS</a></div>
@@ -1013,6 +1141,18 @@ class EwsAbout extends HTMLElement {
                 <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Camila&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
                 <div>&nbsp;&nbsp;&lt;<span style="color: ${style.defaultColor}">div</span>&gt;Daisy&lt;/<span style="color: ${style.defaultColor}">div</span>&gt;</div>
                 <div>&lt;/<span style="color: ${style.defaultColor}">ews-sort</span>&gt;</div>
+            </div>
+            <h4>Image Slider</h4>
+            <div class="code">
+                <div style="color: ${style.inactiveColor}">&lt;!-- src1, src2, src3, src4, etc. It goes forever --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-is <span style="color: ${style.attrColor}">src1=<span style="color: ${style.strColor}">"[IMAGE_PATH/IMAGE_LINK]"</span>&nbsp;<span>src2=<span style="color: ${style.strColor}">"[IMAGE_PATH/IMAGE_LINK]"</span><br><span>src3=<span style="color: ${style.strColor}">"[IMAGE_PATH/IMAGE_LINK]"</span></span></span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-is</span>&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt;!-- The ">" button goes to the next image, else previous image --&gt;</div>
+            </div>
+            <h4>Star rating</h4>
+            <div class="code">
+                <div style="color: ${style.inactiveColor}">&lt;!-- The "value" attribute sets the star rating to the value you want, max value changes<br>the max value of the stars --&gt;</div>
+                <div>&lt;<span style="color: ${style.defaultColor}">ews-sr <span style="color: ${style.attrColor}">value=<span style="color: ${style.strColor}">"5"</span> maxvalue=<span style="color: ${style.strColor}">"10"</span></span></span>&gt;&lt;/<span style="color: ${style.defaultColor}">ews-sr</span>&gt;</div>
+                <div style="color: ${style.inactiveColor}">&lt!-- For example in the given example it will be 5/10 stars. Note: the stars are clickable and can be changed<br>by the user when interacting with. --&gt;</div>
             </div>
             <h4>To get the help</h4>
             <div class="code">

@@ -183,7 +183,8 @@ ews-ap,
 .ews-ddm,
 ews-charts,
 ews-collapsible,
-ews-sort {
+ews-sort,
+ews-sr {
     display: block;
 }
 
@@ -347,6 +348,86 @@ ews-sort select {
     outline: none;
 }
 
+ews-is {
+    position: relative;
+    display: block;
+    width: max-content;
+    margin: 5px 0 5px 0;
+}
+
+ews-is img {
+    border-radius: 8px;
+}
+
+ews-is .slider {
+    position: relative;
+    overflow: hidden;
+    width: max-content;
+}
+
+ews-is .slide {
+    opacity: 1;
+    transition: opacity 500ms ease;
+}
+
+ews-is .slide:not(:first-of-type) {
+    opacity: 0;
+}
+
+ews-is .prev,
+ews-is .next {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-top: -20px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: none;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: 300ms ease;
+}
+
+ews-is .prev {
+    left: 5px;
+}
+
+ews-is .next {
+    right: 5px;
+}
+
+ews-is .prev:hover,
+ews-is .next:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+ews-is .prev:hover {
+    transform: translateX(-2px);
+}
+
+ews-is .next:hover {
+    transform: translateX(2px);
+}
+
+ews-sr .star {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    cursor: pointer;
+}
+
+ews-sr .star.active {
+    fill: #ffd700;
+}
+
 ews-about {
     background: #121212;
     border-radius: 10px;
@@ -355,7 +436,7 @@ ews-about {
     top: 50%;
     transform: translate(-50%, -50%);
     width: max-content;
-    height: 5in;
+    height: 6in;
     overflow-y: scroll;
     padding: 7px;
     margin: 5px 0 5px 0;
